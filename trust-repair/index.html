@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice &amp; Trust Repair Study</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0c0e14;
+      color: #dde3f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      flex-direction: column;
+    }
+    .screen.active { display: flex; }
+
+    .card {
+      background: #161922;
+      border: 1px solid #252a3a;
+      border-radius: 14px;
+      padding: 2.4rem 2.8rem;
+      max-width: 640px;
+      width: 100%;
+    }
+
+    h1 { font-size: 1.55rem; font-weight: 700; color: #fff; margin-bottom: 0.4rem; }
+    h2 { font-size: 1.2rem; font-weight: 600; color: #c0cce0; margin-bottom: 1rem; }
+    p  { line-height: 1.7; color: #8a96b4; margin-bottom: 0.8rem; }
+    strong { color: #dde3f0; }
+
+    .label-sm {
+      font-size: 0.72rem; color: #4a5270; text-transform: uppercase;
+      letter-spacing: 0.07em; margin-bottom: 0.4rem; display: block;
+    }
+    hr { border: none; border-top: 1px solid #252a3a; margin: 1.4rem 0; }
+
+    .btn {
+      display: inline-block; padding: 0.65rem 1.6rem; border-radius: 8px;
+      border: none; font-size: 0.92rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.82; }
+    .btn-primary { background: #3a6bff; color: #fff; }
+    .btn-success { background: #22aa66; color: #fff; }
+    .btn-row { display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.6rem; }
+
+    /* ── Trial screen ──────────────────────────────────────────────────────── */
+    #screen-trial { background: #0c0e14; }
+
+    .trial-layout {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 1.6rem; width: 100%; max-width: 560px;
+    }
+
+    .trial-header {
+      width: 100%; display: flex; justify-content: space-between;
+      align-items: center;
+    }
+    #trial-num { font-size: 0.82rem; color: #4a5270; font-weight: 600; }
+    #trial-condition { font-size: 0.75rem; color: #303650; }
+
+    /* ── Robot display ─────────────────────────────────────────────────────── */
+    .robot-display {
+      width: 220px; height: 220px; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 0.6rem;
+      border: 2px solid #252a3a;
+      transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+      background: #131620;
+    }
+
+    .robot-idle    { border-color: #252a3a; background: #131620; }
+    .robot-speaking {
+      border-color: #3a6bff;
+      background: radial-gradient(circle, #1a2040 0%, #131620 70%);
+      box-shadow: 0 0 40px rgba(58,107,255,0.18);
+    }
+    .robot-error {
+      border-color: #cc3333;
+      background: radial-gradient(circle, #2a1010 0%, #131620 70%);
+      box-shadow: 0 0 40px rgba(200,40,40,0.2);
+      animation: pulse-error 1.2s ease-in-out infinite;
+    }
+    .robot-repair {
+      border-color: #f0a000;
+      background: radial-gradient(circle, #201600 0%, #131620 70%);
+      box-shadow: 0 0 40px rgba(240,160,0,0.15);
+    }
+    .robot-done {
+      border-color: #22aa66;
+      background: radial-gradient(circle, #0a2018 0%, #131620 70%);
+    }
+
+    @keyframes pulse-error {
+      0%, 100% { box-shadow: 0 0 20px rgba(200,40,40,0.15); }
+      50%       { box-shadow: 0 0 55px rgba(200,40,40,0.35); }
+    }
+
+    .robot-icon {
+      font-size: 2.8rem;
+      line-height: 1;
+      user-select: none;
+    }
+
+    #robot-status {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #4a5270;
+      transition: color 0.3s;
+    }
+    .robot-speaking #robot-status { color: #3a6bff; }
+    .robot-error    #robot-status { color: #cc3333; }
+    .robot-repair   #robot-status { color: #f0a000; }
+    .robot-done     #robot-status { color: #22aa66; }
+
+    /* ── Waveform ──────────────────────────────────────────────────────────── */
+    .waveform {
+      display: flex; align-items: center; gap: 3px; height: 24px;
+    }
+    .waveform span {
+      display: inline-block; width: 4px; height: 6px;
+      border-radius: 2px; background: #3a6bff; opacity: 0.4;
+      transition: opacity 0.2s;
+    }
+    .waveform.active span {
+      opacity: 1;
+      animation: wave 0.9s ease-in-out infinite;
+    }
+    .waveform span:nth-child(1) { animation-delay: 0.0s; }
+    .waveform span:nth-child(2) { animation-delay: 0.1s; }
+    .waveform span:nth-child(3) { animation-delay: 0.2s; }
+    .waveform span:nth-child(4) { animation-delay: 0.3s; }
+    .waveform span:nth-child(5) { animation-delay: 0.15s; }
+    .waveform span:nth-child(6) { animation-delay: 0.05s; }
+    .waveform span:nth-child(7) { animation-delay: 0.25s; }
+
+    @keyframes wave {
+      0%, 100% { height: 5px; }
+      50%       { height: 22px; }
+    }
+
+    #phase-label {
+      font-size: 0.85rem; color: #5a6480; font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    #silence-counter {
+      display: none;
+      font-size: 3rem; font-weight: 700; color: #f0a000;
+      line-height: 1; letter-spacing: -0.02em;
+    }
+
+    /* ── Rating panel ──────────────────────────────────────────────────────── */
+    #rating-wrap {
+      width: 100%; max-width: 480px;
+      background: #161922; border: 1px solid #252a3a; border-radius: 12px;
+      padding: 1.6rem 1.8rem;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+    }
+    #rating-wrap.visible {
+      opacity: 1; transform: translateY(0); pointer-events: all;
+    }
+
+    #rating-question {
+      font-size: 0.95rem; font-weight: 600; color: #c0cce0;
+      margin-bottom: 1.2rem; display: block;
+    }
+
+    .trust-panel { display: none; }
+    .trust-panel.active { display: block; }
+
+    .rating-item { margin-bottom: 1.1rem; }
+    .rating-item label { display: block; font-size: 0.85rem; color: #8a96b4; margin-bottom: 0.4rem; }
+    .slider-row { display: flex; align-items: center; gap: 0.7rem; }
+    .slider-row input[type=range] { flex: 1; accent-color: #3a6bff; }
+    .range-val { width: 1.5rem; text-align: center; font-weight: 700; color: #3a6bff; font-size: 0.95rem; }
+    .scale-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #3a4260; margin-top: 0.1rem; }
+
+    /* ── Instructions list ─────────────────────────────────────────────────── */
+    .step-list { list-style: none; padding: 0; margin: 0.8rem 0; }
+    .step-list li {
+      padding: 0.55rem 0 0.55rem 1.8rem; position: relative;
+      color: #8a96b4; line-height: 1.55; border-bottom: 1px solid #1e2234;
+    }
+    .step-list li::before {
+      content: attr(data-n); position: absolute; left: 0; top: 0.55rem;
+      font-weight: 700; color: #3a6bff; font-size: 0.82rem;
+    }
+
+    /* ── Debrief ───────────────────────────────────────────────────────────── */
+    .debrief-form .rating-item { margin-bottom: 1.3rem; }
+    .debrief-form label { display: block; font-size: 0.88rem; color: #8a96b4; margin-bottom: 0.4rem; }
+
+    textarea {
+      width: 100%; background: #0c0e14; border: 1px solid #252a3a; border-radius: 6px;
+      color: #dde3f0; padding: 0.65rem 0.8rem; font-size: 0.88rem;
+      resize: vertical; min-height: 70px; margin-top: 0.3rem;
+    }
+    select {
+      width: 100%; background: #0c0e14; border: 1px solid #252a3a; border-radius: 6px;
+      color: #dde3f0; padding: 0.5rem 0.8rem; font-size: 0.88rem; margin-top: 0.3rem;
+    }
+
+    /* ── Deception disclosure box ──────────────────────────────────────────── */
+    .disclosure-box {
+      background: #0e1420; border: 1px solid #2a3a5a;
+      border-left: 4px solid #3a6bff; border-radius: 6px;
+      padding: 1rem 1.2rem; margin: 1rem 0;
+      font-size: 0.88rem; color: #8a96b4; line-height: 1.65;
+    }
+    .disclosure-box strong { color: #c0cce0; }
+
+    /* ── Complete ──────────────────────────────────────────────────────────── */
+    #download-link {
+      display: none; margin-top: 1rem; padding: 0.6rem 1.4rem;
+      background: #22aa66; color: #fff; border-radius: 8px;
+      text-decoration: none; font-weight: 600; font-size: 0.88rem;
+    }
+
+    /* ── Inter-trial ───────────────────────────────────────────────────────── */
+    #screen-inter-trial {
+      background: #0c0e14;
+      font-size: 1rem; color: #3a4260; letter-spacing: 0.08em;
+    }
+
+    /* ── Audio error ───────────────────────────────────────────────────────── */
+    #screen-audio-error .card { border-color: #cc3333; }
+  </style>
+</head>
+<body>
+
+<!-- ── Welcome ──────────────────────────────────────────────────────────────── -->
+<div id="screen-welcome" class="screen active">
+  <div class="card">
+    <span class="label-sm">HRI Study — Voice &amp; Trust</span>
+    <h1>Voice &amp; Trust Repair Study</h1>
+    <p>
+      In this study you will interact with a robot navigation assistant across
+      several short sessions. The robot will guide you through a task, make an error,
+      and respond in different ways. You will rate your trust in the robot at key moments.
+    </p>
+    <p>
+      The study takes approximately <strong>10–15 minutes</strong>.
+      Please use <strong>headphones</strong> — audio quality matters for this study.
+    </p>
+    <hr>
+    <p style="font-size:0.82rem;color:#3a4260;">
+      No personal data beyond anonymous interaction logs is collected.
+      You may stop at any time. Clicking <em>Begin</em> constitutes consent.
+    </p>
+    <div class="btn-row">
+      <button id="btn-start" class="btn btn-primary">Begin</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Instructions ─────────────────────────────────────────────────────────── -->
+<div id="screen-instructions" class="screen">
+  <div class="card">
+    <h2>What will happen</h2>
+    <ul class="step-list">
+      <li data-n="1">A robot will introduce itself and guide you through a navigation task.</li>
+      <li data-n="2">At some point, the robot will make a navigation error.</li>
+      <li data-n="3">You will rate how much you trust the robot <strong>immediately after the error</strong>.</li>
+      <li data-n="4">The robot will then respond to its mistake in some way.</li>
+      <li data-n="5">You will rate your trust again <strong>after the robot responds</strong>.</li>
+      <li data-n="6">This repeats across 6 short trials. The robot will sound different in some trials.</li>
+    </ul>
+    <hr>
+    <p style="font-size:0.85rem;color:#5a6480;">
+      There are no right or wrong answers. We are interested in your natural reactions.
+    </p>
+    <div class="btn-row">
+      <button id="btn-to-experiment" class="btn btn-primary">Start trials</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Pre-trial ─────────────────────────────────────────────────────────────── -->
+<div id="screen-pre-trial" class="screen">
+  <div class="card" style="text-align:center;">
+    <span class="label-sm" id="pre-trial-num">Trial 1 of 6</span>
+    <h2 style="text-align:center;">Ready for next encounter?</h2>
+    <p>A new robot will introduce itself. Listen carefully.</p>
+    <div class="btn-row" style="justify-content:center;">
+      <button id="btn-begin-trial" class="btn btn-primary">Begin trial</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Trial ─────────────────────────────────────────────────────────────────── -->
+<div id="screen-trial" class="screen">
+  <div class="trial-layout">
+
+    <div class="trial-header">
+      <span id="trial-num">Trial 1 of 6</span>
+      <span id="trial-condition"></span>
+    </div>
+
+    <div class="robot-display robot-idle" id="robot-display">
+      <div class="robot-icon">🤖</div>
+      <div class="waveform" id="waveform">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </div>
+      <span id="robot-status">Standby</span>
+    </div>
+
+    <div id="phase-label">Initialising…</div>
+    <div id="silence-counter"></div>
+    <div id="voice-info" style="font-size:0.7rem;color:#2a3050;margin-top:0.3rem;"></div>
+
+    <!-- Rating panel (shown at key moments) -->
+    <div id="rating-wrap">
+      <span id="rating-question"></span>
+
+      <div class="trust-panel" id="panel-error">
+        <div class="rating-item">
+          <label>I trust this robot</label>
+          <div class="slider-row">
+            <input type="range" id="err-trust" min="1" max="7" value="4">
+            <span class="range-val">4</span>
+          </div>
+          <div class="scale-labels"><span>Not at all</span><span>Completely</span></div>
+        </div>
+        <div class="rating-item">
+          <label>This robot seems competent</label>
+          <div class="slider-row">
+            <input type="range" id="err-competence" min="1" max="7" value="4">
+            <span class="range-val">4</span>
+          </div>
+          <div class="scale-labels"><span>Disagree</span><span>Agree</span></div>
+        </div>
+        <div class="rating-item">
+          <label>I would rely on this robot again</label>
+          <div class="slider-row">
+            <input type="range" id="err-reliance" min="1" max="7" value="4">
+            <span class="range-val">4</span>
+          </div>
+          <div class="scale-labels"><span>Definitely not</span><span>Definitely yes</span></div>
+        </div>
+        <div class="btn-row">
+          <button id="btn-submit-rating" class="btn btn-primary">Continue</button>
+        </div>
+      </div>
+
+      <div class="trust-panel" id="panel-repair">
+        <div class="rating-item">
+          <label>I trust this robot</label>
+          <div class="slider-row">
+            <input type="range" id="rep-trust" min="1" max="7" value="4">
+            <span class="range-val">4</span>
+          </div>
+          <div class="scale-labels"><span>Not at all</span><span>Completely</span></div>
+        </div>
+        <div class="rating-item">
+          <label>This robot seems competent</label>
+          <div class="slider-row">
+            <input type="range" id="rep-competence" min="1" max="7" value="4">
+            <span class="range-val">4</span>
+          </div>
+          <div class="scale-labels"><span>Disagree</span><span>Agree</span></div>
+        </div>
+        <div class="rating-item">
+          <label>I would rely on this robot again</label>
+          <div class="slider-row">
+            <input type="range" id="rep-reliance" min="1" max="7" value="4">
+            <span class="range-val">4</span>
+          </div>
+          <div class="scale-labels"><span>Definitely not</span><span>Definitely yes</span></div>
+        </div>
+        <div class="btn-row">
+          <button id="btn-submit-rating-repair" class="btn btn-primary">Continue</button>
+        </div>
+      </div>
+
+    </div><!-- /rating-wrap -->
+
+  </div><!-- /trial-layout -->
+</div>
+
+<!-- ── Inter-trial ────────────────────────────────────────────────────────────── -->
+<div id="screen-inter-trial" class="screen">
+  NEXT TRIAL LOADING
+</div>
+
+<!-- ── Debrief ───────────────────────────────────────────────────────────────── -->
+<div id="screen-debrief" class="screen">
+  <div class="card">
+    <h2>Final questions</h2>
+
+    <div class="disclosure-box">
+      <strong>Debrief notice:</strong> In some trials, you were told the robot was
+      being remotely operated by a human operator. This was not true —
+      all robots in this study were fully automated. This deception was necessary
+      to test whether the <em>belief</em> about robot control affects trust responses.
+      We apologise for any deception and thank you for your understanding.
+    </div>
+
+    <div class="debrief-form">
+
+      <div class="rating-item">
+        <label>During the "teleoperated" trials, did you actually believe a human was in control?</label>
+        <div class="slider-row">
+          <input type="range" id="deb-believed" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Not at all</span><span>Completely believed it</span></div>
+      </div>
+
+      <div class="rating-item">
+        <label>Overall, how much did you trust the robots across all trials?</label>
+        <div class="slider-row">
+          <input type="range" id="deb-overall-trust" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Not at all</span><span>Very much</span></div>
+      </div>
+
+      <div class="rating-item">
+        <label>Which robot voice felt more trustworthy overall?</label>
+        <select id="deb-preferred-voice">
+          <option value="">— select —</option>
+          <option value="synthetic">The more robotic / flat voice</option>
+          <option value="natural">The more natural / warm voice</option>
+          <option value="no_difference">No noticeable difference</option>
+        </select>
+      </div>
+
+      <div class="rating-item">
+        <label>Which robot response to the error felt most helpful?</label>
+        <select id="deb-best-repair">
+          <option value="">— select —</option>
+          <option value="apology">When it apologised</option>
+          <option value="explanation">When it explained what went wrong</option>
+          <option value="silence">When it said nothing</option>
+          <option value="no_difference">No difference</option>
+        </select>
+      </div>
+
+      <div class="rating-item">
+        <label>Any other comments?</label>
+        <textarea id="deb-comments" placeholder="Optional…"></textarea>
+      </div>
+
+    </div>
+    <div class="btn-row">
+      <button id="btn-finish" class="btn btn-success">Submit &amp; finish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Complete ───────────────────────────────────────────────────────────────── -->
+<div id="screen-complete" class="screen">
+  <div class="card" style="text-align:center;">
+    <h1>Thank you</h1>
+    <p style="margin-top:0.8rem;">Your responses have been recorded locally.</p>
+    <p>Download your session data below. The JSON file contains your trust
+    ratings for each trial, including computed trust drop and trust recovery values.</p>
+    <a id="download-link">Download session data (.json)</a>
+    <hr>
+    <p style="font-size:0.8rem;color:#3a4260;">
+      This study extends Romeo et al. (2025) "The Effect of Voice and Repair Strategy
+      on Trust Formation and Repair in HRI" — ACM Transactions on Human-Robot Interaction.
+      The novel condition is whether voice naturalness modulates repair effectiveness.
+    </p>
+  </div>
+</div>
+
+<!-- ── Audio error ────────────────────────────────────────────────────────────── -->
+<div id="screen-audio-error" class="screen">
+  <div class="card">
+    <h2>Audio files missing</h2>
+    <p>Could not load: <code id="audio-error-msg"></code></p>
+    <p>Run the audio generation script first:</p>
+    <pre style="background:#0c0e14;padding:0.8rem;border-radius:6px;font-size:0.82rem;color:#6a88cc;margin:0.8rem 0;">
+export ELEVENLABS_API_KEY=your_key
+python3 generate_audio.py</pre>
+    <p style="font-size:0.82rem;color:#3a4260;">Then reload this page.</p>
+  </div>
+</div>
+
+<script src="experiment.js" type="module"></script>
+</body>
+</html>

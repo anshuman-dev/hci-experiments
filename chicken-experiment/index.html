@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robot Encounter Study</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e8eaf0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Screens ─────────────────────────────────────────────────────────── */
+    .screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 2rem;
+      background: #0f1117;
+      overflow-y: auto;
+    }
+    .screen.active { display: flex; }
+
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2e3348;
+      border-radius: 12px;
+      padding: 2.4rem 2.8rem;
+      max-width: 660px;
+      width: 100%;
+    }
+
+    h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; color: #ffffff; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: #c8d0e0; }
+    p  { line-height: 1.65; color: #a0a8c0; margin-bottom: 0.8rem; }
+    strong { color: #e8eaf0; }
+
+    .label-sm { font-size: 0.78rem; color: #6e7a9a; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; display: block; }
+
+    hr { border: none; border-top: 1px solid #2e3348; margin: 1.4rem 0; }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-block;
+      padding: 0.7rem 1.8rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #3d6fff; color: #fff; }
+    .btn-success { background: #28a745; color: #fff; }
+    .btn-row { margin-top: 1.6rem; display: flex; gap: 0.8rem; justify-content: flex-end; }
+
+    /* ── Rating sliders ──────────────────────────────────────────────────── */
+    .rating-item {
+      margin-bottom: 1.4rem;
+    }
+    .rating-item label {
+      display: block;
+      font-size: 0.92rem;
+      color: #c0c8dc;
+      margin-bottom: 0.4rem;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .slider-row input[type=range] {
+      flex: 1;
+      accent-color: #3d6fff;
+    }
+    .range-val {
+      width: 1.6rem;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #3d6fff;
+    }
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: #5a6280;
+      margin-top: 0.15rem;
+    }
+
+    /* ── Trial screen ────────────────────────────────────────────────────── */
+    #screen-trial {
+      background: transparent;
+      padding: 0;
+    }
+    #canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    #hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 0.7rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+    #trial-counter {
+      font-size: 0.85rem;
+      color: #c0c8dc;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .proximity-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .proximity-label { font-size: 0.75rem; color: #8090b0; white-space: nowrap; }
+    .proximity-track {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    #proximity-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #3d6fff, #ff4444);
+      border-radius: 3px;
+      transition: width 0.05s linear;
+    }
+
+    #key-hint {
+      position: fixed;
+      bottom: 1.2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.82rem;
+      color: rgba(200,210,230,0.65);
+      pointer-events: none;
+      z-index: 10;
+      text-align: center;
+      background: rgba(0,0,0,0.35);
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+    }
+
+    /* ── Pre-trial framing ───────────────────────────────────────────────── */
+    .framing-box {
+      background: #12151e;
+      border: 1px solid #2e3348;
+      border-left: 4px solid #3d6fff;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0 1.4rem;
+      font-size: 0.95rem;
+      color: #b0bcdc;
+      line-height: 1.6;
+    }
+
+    /* ── Complete screen ─────────────────────────────────────────────────── */
+    #download-link {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.65rem 1.4rem;
+      background: #28a745;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* ── Instruction list ────────────────────────────────────────────────── */
+    .instruction-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.8rem 0;
+    }
+    .instruction-list li {
+      padding: 0.5rem 0 0.5rem 1.6rem;
+      position: relative;
+      color: #a8b4cc;
+      line-height: 1.55;
+      border-bottom: 1px solid #1e2236;
+    }
+    .instruction-list li::before {
+      content: attr(data-n);
+      position: absolute;
+      left: 0;
+      top: 0.5rem;
+      font-weight: 700;
+      color: #3d6fff;
+      font-size: 0.85rem;
+    }
+
+    /* ── Tag chips ───────────────────────────────────────────────────────── */
+    .chip {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin: 0 0.15rem;
+    }
+    .chip-blue { background: #1e2e5e; color: #7799ff; }
+    .chip-green { background: #0e2a1a; color: #4dbb6e; }
+  </style>
+</head>
+<body>
+
+<!-- ── Welcome ────────────────────────────────────────────────────────────── -->
+<div id="screen-welcome" class="screen active">
+  <div class="card">
+    <span class="label-sm">HRI Study — Chalmers / Robot Communication</span>
+    <h1>Robot Encounter Study</h1>
+    <p>
+      This study investigates how people navigate shared spaces with robots.
+      You will encounter a robot approaching you in a corridor and walk toward it.
+    </p>
+    <p>
+      The study takes approximately <strong>8–12 minutes</strong> and consists of
+      <strong>8 short trials</strong>. There are no right or wrong responses —
+      we are interested in your natural behaviour.
+    </p>
+    <hr>
+    <p style="font-size:0.85rem; color:#5a6280;">
+      No personal data beyond anonymous interaction logs is collected.
+      You may stop at any time by closing this window. By clicking
+      <em>Begin</em> you consent to participate.
+    </p>
+    <div class="btn-row">
+      <button id="btn-start" class="btn btn-primary">Begin study</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Instructions ───────────────────────────────────────────────────────── -->
+<div id="screen-instructions" class="screen">
+  <div class="card">
+    <h2>How it works</h2>
+    <ul class="instruction-list">
+      <li data-n="1">
+        You will be placed in a first-person view of a corridor.
+        Your character <strong>moves forward automatically</strong>.
+      </li>
+      <li data-n="2">
+        A robot will approach you from the far end of the corridor.
+      </li>
+      <li data-n="3">
+        Use <span class="chip chip-blue">A</span> and
+        <span class="chip chip-blue">D</span> keys to steer
+        left or right. Navigate however feels natural.
+      </li>
+      <li data-n="4">
+        After each encounter you will answer four quick rating questions.
+      </li>
+      <li data-n="5">
+        Some robots will look different from others. Some trials may include
+        a sound — pay attention to it.
+      </li>
+    </ul>
+    <hr>
+    <p style="font-size:0.88rem; color:#6e7a9a;">
+      The yellow line on the floor marks the centre of the corridor.
+      The coloured bar at the top shows how close the robot is.
+    </p>
+    <div class="btn-row">
+      <button id="btn-to-trial" class="btn btn-primary">I understand — continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Pre-trial framing ───────────────────────────────────────────────────── -->
+<div id="screen-pre-trial" class="screen">
+  <div class="card">
+    <span class="label-sm" id="pre-trial-num">Trial 1 of 8</span>
+    <h2>About this robot</h2>
+    <p>Before this trial, please read the following information about the robot you are about to encounter:</p>
+    <div class="framing-box" id="autonomy-framing"></div>
+    <p style="font-size:0.88rem; color:#6e7a9a;">
+      When you click <em>Start trial</em> the 3D scene will begin immediately.
+      Make sure you are ready to use the A / D keys.
+    </p>
+    <div class="btn-row">
+      <button id="btn-start-trial" class="btn btn-primary">Start trial</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Trial (3D) ─────────────────────────────────────────────────────────── -->
+<div id="screen-trial" class="screen">
+  <canvas id="canvas"></canvas>
+  <div id="hud">
+    <span id="trial-counter">Trial 1 of 8</span>
+    <div class="proximity-wrap">
+      <span class="proximity-label">Robot distance</span>
+      <div class="proximity-track"><div id="proximity-bar"></div></div>
+      <span class="proximity-label">Close</span>
+    </div>
+    <span id="condition-label" style="font-size:0.75rem;color:#8090b0;white-space:nowrap;"></span>
+  </div>
+  <div id="key-hint">A &nbsp;←&nbsp; steer &nbsp;→&nbsp; D</div>
+</div>
+
+<!-- ── Post-trial ratings ─────────────────────────────────────────────────── -->
+<div id="screen-rating" class="screen">
+  <div class="card">
+    <span class="label-sm" id="rating-trial-num">Trial 1 of 8</span>
+    <h2>Rate this encounter</h2>
+    <div class="rating-form">
+
+      <div class="rating-item">
+        <label>How much did you feel the need to move out of the way?</label>
+        <div class="slider-row">
+          <input type="range" id="r-urgency" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Not at all</span><span>Very much</span></div>
+      </div>
+
+      <div class="rating-item">
+        <label>How much did you perceive the robot as a social agent?</label>
+        <div class="slider-row">
+          <input type="range" id="r-social" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Not at all</span><span>Very much</span></div>
+      </div>
+
+      <div class="rating-item">
+        <label>How would you describe the robot's control during this encounter?</label>
+        <div class="slider-row">
+          <input type="range" id="r-autonomy" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Fully human-controlled</span><span>Fully autonomous</span></div>
+      </div>
+
+      <div class="rating-item">
+        <label>How comfortable did you feel during the encounter?</label>
+        <div class="slider-row">
+          <input type="range" id="r-comfort" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Very uncomfortable</span><span>Very comfortable</span></div>
+      </div>
+
+    </div>
+    <div class="btn-row">
+      <button id="btn-submit-rating" class="btn btn-primary">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Debrief / final questionnaire ─────────────────────────────────────── -->
+<div id="screen-debrief" class="screen">
+  <div class="card">
+    <h2>Final questions</h2>
+    <p style="margin-bottom:1.2rem;">
+      Thinking about all the robot encounters across the study, please answer the following.
+    </p>
+    <div class="debrief-form">
+
+      <div class="rating-item">
+        <label><strong>Godspeed — Anthropomorphism:</strong> How would you describe the robots overall?</label>
+        <div class="slider-row">
+          <input type="range" id="gs-humanlike" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Machine-like</span><span>Human-like</span></div>
+      </div>
+
+      <div class="rating-item">
+        <label>Overall, the robots felt…</label>
+        <div class="slider-row">
+          <input type="range" id="gs-lifelike" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Artificial / fake</span><span>Lifelike</span></div>
+      </div>
+
+      <div class="rating-item">
+        <label>The robots seemed…</label>
+        <div class="slider-row">
+          <input type="range" id="gs-conscious" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Unconscious / unaware</span><span>Conscious / aware</span></div>
+      </div>
+
+      <hr>
+
+      <div class="rating-item">
+        <label>Overall, how much did you trust the robots to navigate safely?</label>
+        <div class="slider-row">
+          <input type="range" id="deb-trust" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Not at all</span><span>Completely</span></div>
+      </div>
+
+      <div class="rating-item">
+        <label>In a real-world setting, how likely would you be to yield to a robot like this?</label>
+        <div class="slider-row">
+          <input type="range" id="deb-yield" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Very unlikely</span><span>Very likely</span></div>
+      </div>
+
+      <div class="rating-item">
+        <label>When a sound signal was present, how helpful was it for understanding the robot's approach?</label>
+        <div class="slider-row">
+          <input type="range" id="deb-signal" min="1" max="7" value="4">
+          <span class="range-val">4</span>
+        </div>
+        <div class="scale-labels"><span>Not helpful at all</span><span>Very helpful</span></div>
+      </div>
+
+    </div>
+    <div class="btn-row">
+      <button id="btn-submit-debrief" class="btn btn-success">Submit &amp; finish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Complete ───────────────────────────────────────────────────────────── -->
+<div id="screen-complete" class="screen">
+  <div class="card" style="text-align:center;">
+    <h1>Study complete</h1>
+    <p style="margin-top:0.8rem;">
+      Thank you for participating. Your data has been recorded locally.
+    </p>
+    <p>
+      Click below to download your anonymised session data as a JSON file.
+      If this is a lab study, please hand this file to the experimenter.
+    </p>
+    <a id="download-link">Download session data</a>
+    <hr style="margin-top:2rem;">
+    <p style="font-size:0.82rem; color:#5a6280;">
+      This experiment is part of research on robot communication signals —
+      specifically whether auditory approach signals from the
+      <em>Sounding Robots</em> framework (Orthmann et al., 2023) modulate
+      navigation behaviour independently of robot anthropomorphism.
+    </p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script type="module" src="experiment.js"></script>
+</body>
+</html>
