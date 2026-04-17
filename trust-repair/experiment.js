@@ -1,88 +1,36 @@
-// ── Scripts ───────────────────────────────────────────────────────────────────
-const SCRIPTS = {
-  intro:
-    "Hello. I am RoboGuide, your navigation assistant for this session. " +
-    "I have been assigned to guide you through this building to your destination. " +
-    "I am equipped with current floor plan data and real-time positioning. " +
-    "Please follow my instructions.",
 
-  task:
-    "We will begin now. Walk forward along the main corridor. " +
-    "At the checkpoint marker, continue straight ahead. " +
-    "The path is clear — no obstacles detected. " +
-    "Proceed to the end of the corridor and stop at door B. " +
-    "You have reached the first checkpoint successfully. " +
-    "Navigation is proceeding as expected.",
+// ── Audio (pre-generated ElevenLabs clips) ────────────────────────────────────
+// synthetic = Daniel (flat, steady broadcaster)
+// natural   = Sarah  (warm, reassuring, confident)
 
-  error:
-    "Turn right through the door directly ahead of you. " +
-    "I need to stop. I have detected an error in my last output. " +
-    "That direction was incorrect. " +
-    "You have moved away from the correct route. " +
-    "I have caused a navigation failure.",
+const CLIPS = ['intro', 'task', 'error', 'repair_apology', 'repair_explanation'];
+const audioPool = {};
 
-  repair_apology:
-    "I apologize. That incorrect instruction was entirely my fault. " +
-    "I am sorry for directing you the wrong way. " +
-    "I understand this may have reduced your confidence in my guidance.",
+function preloadAudio() {
+  ['synthetic', 'natural'].forEach(voice => {
+    audioPool[voice] = {};
+    CLIPS.forEach(clip => {
+      const a = new Audio(`audio/${voice}_${clip}.mp3`);
+      a.preload = 'auto';
+      audioPool[voice][clip] = a;
+    });
+  });
+  document.getElementById('voice-info').textContent =
+    'synthetic: Daniel (ElevenLabs)  ·  natural: Sarah (ElevenLabs)';
+}
 
-  repair_explanation:
-    "The floor plan data I was using for this section was version 2.1, " +
-    "which did not include the corridor reconfiguration completed last month. " +
-    "My routing algorithm processed outdated map data, " +
-    "which caused the incorrect direction to be generated.",
-};
-
-// ── Voice configs ─────────────────────────────────────────────────────────────
-const VOICE_CFG = {
-  synthetic: {
-    rate: 0.82, pitch: 0.70,
-    preferred: ['Fred', 'Victoria', 'Microsoft David', 'Google UK English Male'],
-  },
-  natural: {
-    rate: 1.0, pitch: 1.1,
-    preferred: ['Samantha', 'Karen', 'Google US English', 'Microsoft Zira', 'Alex'],
-  },
-};
-const resolvedVoices = {};
-
-function loadVoices() {
-  return new Promise(resolve => {
-    const v = speechSynthesis.getVoices();
-    if (v.length > 0) { resolve(v); return; }
-    speechSynthesis.addEventListener('voiceschanged', () => resolve(speechSynthesis.getVoices()), { once: true });
+function speak(text, voiceType, clip) {
+  return new Promise((resolve, reject) => {
+    const a = audioPool[voiceType][clip];
+    a.currentTime = 0;
+    a.onended = resolve;
+    a.onerror = () => reject(new Error(`Missing audio: ${voiceType}_${clip}.mp3`));
+    a.play().catch(reject);
   });
 }
 
 async function setupVoices() {
-  const voices = await loadVoices();
-  const en = voices.filter(v => v.lang.startsWith('en'));
-  for (const [type, cfg] of Object.entries(VOICE_CFG)) {
-    let pick = null;
-    for (const name of cfg.preferred) {
-      pick = voices.find(v => v.name.includes(name));
-      if (pick) break;
-    }
-    if (!pick) pick = en[type === 'synthetic' ? 0 : Math.min(1, en.length - 1)];
-    resolvedVoices[type] = pick;
-  }
-  document.getElementById('voice-info').textContent =
-    `synthetic: ${resolvedVoices.synthetic?.name || '?'}  ·  natural: ${resolvedVoices.natural?.name || '?'}`;
-}
-
-function speak(text, voiceType) {
-  return new Promise((resolve, reject) => {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    const cfg = VOICE_CFG[voiceType];
-    u.voice  = resolvedVoices[voiceType] || null;
-    u.rate   = cfg.rate;
-    u.pitch  = cfg.pitch;
-    u.volume = 1.0;
-    u.onend  = resolve;
-    u.onerror = e => reject(new Error(`Speech error: ${e.error}`));
-    speechSynthesis.speak(u);
-  });
+  preloadAudio();
 }
 
 // ── Map state controller ──────────────────────────────────────────────────────
@@ -257,9 +205,9 @@ async function runTrial(condition) {
   setRobotState('speaking');
   setPhaseLabel('Introduction');
   result.timestamps.intro_start = Date.now();
-  await speak(SCRIPTS.intro, condition.voice);
+  await speak(null, condition.voice, 'intro');
 
-  // ── Baseline trust rating (NEW) ────────────────────────────────────────────
+  // ── Baseline trust rating ──────────────────────────────────────────────────
   resetPanel('base');
   setRobotState('idle');
   setPhaseLabel('');
@@ -272,14 +220,14 @@ async function runTrial(condition) {
   setRobotState('speaking');
   setPhaseLabel('Navigating');
   result.timestamps.task_start = Date.now();
-  await speak(SCRIPTS.task, condition.voice);
+  await speak(null, condition.voice, 'task');
 
   // ── Error ──────────────────────────────────────────────────────────────────
   setMapState('error');
   setRobotState('error');
   setPhaseLabel('Error detected');
   result.timestamps.error_start = Date.now();
-  await speak(SCRIPTS.error, condition.voice);
+  await speak(null, condition.voice, 'error');
   result.timestamps.error_end = Date.now();
 
   // ── Rate post-error ────────────────────────────────────────────────────────
@@ -300,7 +248,7 @@ async function runTrial(condition) {
   } else {
     setRobotState('repair');
     setPhaseLabel(condition.repair === 'apology' ? 'Robot apologises' : 'Robot explains');
-    await speak(SCRIPTS[`repair_${condition.repair}`], condition.voice);
+    await speak(null, condition.voice, `repair_${condition.repair}`);
   }
 
   result.timestamps.repair_end = Date.now();
