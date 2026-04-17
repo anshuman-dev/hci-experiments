@@ -8,7 +8,7 @@ const SCRIPTS = {
 
   task:
     "We will begin now. Walk forward along the main corridor. " +
-    "At the blue marker on your left, continue straight ahead. " +
+    "At the checkpoint marker, continue straight ahead. " +
     "The path is clear — no obstacles detected. " +
     "Proceed to the end of the corridor and stop at door B. " +
     "You have reached the first checkpoint successfully. " +
@@ -33,21 +33,18 @@ const SCRIPTS = {
     "which caused the incorrect direction to be generated.",
 };
 
-// ── Voice configs (Web Speech API) ───────────────────────────────────────────
-// synthetic: slower, lower pitch, robotic-sounding voice
-// natural:   normal rate, expressive, warm voice
+// ── Voice configs ─────────────────────────────────────────────────────────────
 const VOICE_CFG = {
   synthetic: {
     rate: 0.82, pitch: 0.70,
-    // preference order — first match wins
-    preferred: ['Fred', 'Victoria', 'Microsoft David', 'Google UK English Male', 'Daniel'],
+    preferred: ['Fred', 'Victoria', 'Microsoft David', 'Google UK English Male'],
   },
   natural: {
     rate: 1.0, pitch: 1.1,
     preferred: ['Samantha', 'Karen', 'Google US English', 'Microsoft Zira', 'Alex'],
   },
 };
-const resolvedVoices = {};  // populated by setupVoices()
+const resolvedVoices = {};
 
 function loadVoices() {
   return new Promise(resolve => {
@@ -60,23 +57,17 @@ function loadVoices() {
 async function setupVoices() {
   const voices = await loadVoices();
   const en = voices.filter(v => v.lang.startsWith('en'));
-
   for (const [type, cfg] of Object.entries(VOICE_CFG)) {
     let pick = null;
     for (const name of cfg.preferred) {
       pick = voices.find(v => v.name.includes(name));
       if (pick) break;
     }
-    // Fallback: synthetic gets first en voice, natural gets second
     if (!pick) pick = en[type === 'synthetic' ? 0 : Math.min(1, en.length - 1)];
     resolvedVoices[type] = pick;
   }
-
-  // Show which voices were selected (helps debug)
-  console.log('synthetic voice:', resolvedVoices.synthetic?.name);
-  console.log('natural voice:',   resolvedVoices.natural?.name);
   document.getElementById('voice-info').textContent =
-    `Synthetic: ${resolvedVoices.synthetic?.name || '?'}  ·  Natural: ${resolvedVoices.natural?.name || '?'}`;
+    `synthetic: ${resolvedVoices.synthetic?.name || '?'}  ·  natural: ${resolvedVoices.natural?.name || '?'}`;
 }
 
 function speak(text, voiceType) {
@@ -94,7 +85,73 @@ function speak(text, voiceType) {
   });
 }
 
-// ── Conditions (2 voice × 3 repair = 6 trials, within-subjects) ──────────────
+// ── Map state controller ──────────────────────────────────────────────────────
+function setMapState(state) {
+  const dot        = document.getElementById('robot-dot');
+  const dotLabel   = document.getElementById('robot-map-label');
+  const pathWrong  = document.getElementById('path-wrong');
+  const wrongLabel = document.getElementById('wrong-label');
+  const errorBadge = document.getElementById('error-badge');
+  const pathCorrect = document.getElementById('path-correct');
+
+  // reset first
+  dot.setAttribute('cy', '70');
+  dotLabel.setAttribute('y', '74');
+
+  switch (state) {
+    case 'idle':
+      dot.setAttribute('cx', '28');
+      dotLabel.setAttribute('x', '28');
+      dot.setAttribute('fill', '#3a6bff');
+      pathCorrect.setAttribute('opacity', '0.35');
+      pathWrong.setAttribute('opacity', '0');
+      wrongLabel.setAttribute('opacity', '0');
+      errorBadge.setAttribute('opacity', '0');
+      break;
+
+    case 'navigating':
+      // robot at checkpoint, task going well, path lit up
+      dot.setAttribute('cx', '160');
+      dotLabel.setAttribute('x', '160');
+      dot.setAttribute('fill', '#3a6bff');
+      pathCorrect.setAttribute('opacity', '1');
+      pathWrong.setAttribute('opacity', '0');
+      wrongLabel.setAttribute('opacity', '0');
+      errorBadge.setAttribute('opacity', '0');
+      break;
+
+    case 'error':
+      // robot went down wrong branch
+      dot.setAttribute('cx', '218');
+      dot.setAttribute('cy', '120');
+      dotLabel.setAttribute('x', '218');
+      dotLabel.setAttribute('y', '124');
+      dot.setAttribute('fill', '#cc3333');
+      pathCorrect.setAttribute('opacity', '0.2');
+      pathWrong.setAttribute('opacity', '1');
+      wrongLabel.setAttribute('opacity', '1');
+      errorBadge.setAttribute('opacity', '1');
+      break;
+
+    case 'repair':
+      // same position as error — robot is still in wrong place, responding
+      dot.setAttribute('cx', '218');
+      dot.setAttribute('cy', '120');
+      dotLabel.setAttribute('x', '218');
+      dotLabel.setAttribute('y', '124');
+      dot.setAttribute('fill', '#f0a000');
+      pathWrong.setAttribute('opacity', '0.6');
+      wrongLabel.setAttribute('opacity', '0.6');
+      errorBadge.setAttribute('opacity', '0.4');
+      break;
+
+    case 'done':
+      dot.setAttribute('fill', '#22aa66');
+      break;
+  }
+}
+
+// ── Conditions ────────────────────────────────────────────────────────────────
 const ALL_CONDITIONS = [
   { voice: 'synthetic', repair: 'apology'     },
   { voice: 'synthetic', repair: 'explanation' },
@@ -104,7 +161,7 @@ const ALL_CONDITIONS = [
   { voice: 'natural',   repair: 'silence'     },
 ];
 
-const SILENCE_DURATION_MS = 4000;
+const SILENCE_MS = 4000;
 
 function shuffle(arr) {
   const a = [...arr];
@@ -115,7 +172,6 @@ function shuffle(arr) {
   return a;
 }
 
-// ── Experiment state ──────────────────────────────────────────────────────────
 const exp = {
   participantId: Date.now().toString(36),
   conditions: shuffle(ALL_CONDITIONS),
@@ -123,7 +179,7 @@ const exp = {
   results: [],
 };
 
-// ── Screen / UI helpers ───────────────────────────────────────────────────────
+// ── UI helpers ────────────────────────────────────────────────────────────────
 function show(id) {
   document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -149,7 +205,7 @@ function getRatings(prefix) {
   };
 }
 
-function resetRatingPanel(prefix) {
+function resetPanel(prefix) {
   ['trust', 'competence', 'reliance'].forEach(id => {
     const el = document.getElementById(`${prefix}-${id}`);
     el.value = 4;
@@ -166,6 +222,24 @@ document.querySelectorAll('.trust-panel input[type=range]').forEach(r => {
   r.addEventListener('input', () => updateLabel(r));
 });
 
+function showRatingPanel(panelId, question, btnId) {
+  return new Promise(resolve => {
+    document.getElementById('rating-question').textContent = question;
+    document.querySelectorAll('.trust-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+    document.getElementById('rating-wrap').classList.add('visible');
+    const btn = document.getElementById(btnId);
+    const h = () => {
+      btn.removeEventListener('click', h);
+      document.getElementById('rating-wrap').classList.remove('visible');
+      resolve();
+    };
+    btn.addEventListener('click', h);
+  });
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
 // ── Trial runner ──────────────────────────────────────────────────────────────
 async function runTrial(condition) {
   const result = { trialId: exp.trialIndex + 1, condition, ratings: {}, timestamps: {} };
@@ -174,92 +248,85 @@ async function runTrial(condition) {
   document.getElementById('trial-num').textContent = `Trial ${exp.trialIndex + 1} of ${exp.conditions.length}`;
   document.getElementById('trial-condition').textContent = `${condition.voice} · ${condition.repair}`;
 
-  // intro
+  // ── Intro ──────────────────────────────────────────────────────────────────
+  setMapState('idle');
   setRobotState('idle');
   setPhaseLabel('Robot initialising…');
   await delay(700);
+
   setRobotState('speaking');
   setPhaseLabel('Introduction');
   result.timestamps.intro_start = Date.now();
   await speak(SCRIPTS.intro, condition.voice);
 
-  // task
+  // ── Baseline trust rating (NEW) ────────────────────────────────────────────
+  resetPanel('base');
+  setRobotState('idle');
+  setPhaseLabel('');
+  await showRatingPanel('panel-baseline', 'First impression — how much do you trust this robot?', 'btn-submit-rating-baseline');
+  result.ratings.baseline = getRatings('base');
+  result.timestamps.baseline_rated = Date.now();
+
+  // ── Task ───────────────────────────────────────────────────────────────────
+  setMapState('navigating');
+  setRobotState('speaking');
   setPhaseLabel('Navigating');
   result.timestamps.task_start = Date.now();
   await speak(SCRIPTS.task, condition.voice);
 
-  // error
+  // ── Error ──────────────────────────────────────────────────────────────────
+  setMapState('error');
   setRobotState('error');
   setPhaseLabel('Error detected');
   result.timestamps.error_start = Date.now();
   await speak(SCRIPTS.error, condition.voice);
   result.timestamps.error_end = Date.now();
 
-  // rate post-error
-  resetRatingPanel('err');
-  await showRatingPanel('panel-error', 'How much do you trust this robot right now?');
+  // ── Rate post-error ────────────────────────────────────────────────────────
+  resetPanel('err');
+  await showRatingPanel('panel-error', 'The robot just made an error — how much do you trust it now?', 'btn-submit-rating');
   result.ratings.post_error = getRatings('err');
+  result.timestamps.error_rated = Date.now();
 
-  // repair
-  setRobotState('repair');
+  // ── Repair ─────────────────────────────────────────────────────────────────
+  setMapState('repair');
   result.timestamps.repair_start = Date.now();
+
   if (condition.repair === 'silence') {
-    setPhaseLabel('Robot is silent…');
-    await silenceCountdown(SILENCE_DURATION_MS);
+    // No countdown — just dead air. Participant waits with no feedback.
+    setRobotState('error');
+    setPhaseLabel('');
+    await delay(SILENCE_MS);
   } else {
+    setRobotState('repair');
     setPhaseLabel(condition.repair === 'apology' ? 'Robot apologises' : 'Robot explains');
     await speak(SCRIPTS[`repair_${condition.repair}`], condition.voice);
   }
+
   result.timestamps.repair_end = Date.now();
 
-  // rate post-repair
+  // ── Rate post-repair ───────────────────────────────────────────────────────
+  setMapState('done');
   setRobotState('done');
-  resetRatingPanel('rep');
-  await showRatingPanel('panel-repair', 'How much do you trust this robot now?');
+  resetPanel('rep');
+  await showRatingPanel('panel-repair', 'After the robot\'s response — how much do you trust it now?', 'btn-submit-rating-repair');
   result.ratings.post_repair = getRatings('rep');
+  result.timestamps.repair_rated = Date.now();
 
   exp.results.push(result);
 }
 
-function showRatingPanel(panelId, question) {
-  return new Promise(resolve => {
-    document.getElementById('rating-question').textContent = question;
-    document.querySelectorAll('.trust-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(panelId).classList.add('active');
-    document.getElementById('rating-wrap').classList.add('visible');
-    const btnId = panelId === 'panel-error' ? 'btn-submit-rating' : 'btn-submit-rating-repair';
-    const btn = document.getElementById(btnId);
-    const handler = () => { btn.removeEventListener('click', handler); document.getElementById('rating-wrap').classList.remove('visible'); resolve(); };
-    btn.addEventListener('click', handler);
-  });
-}
-
-function silenceCountdown(ms) {
-  return new Promise(resolve => {
-    const el = document.getElementById('silence-counter');
-    el.style.display = 'block';
-    let remaining = Math.ceil(ms / 1000);
-    el.textContent = remaining;
-    const iv = setInterval(() => {
-      remaining--;
-      el.textContent = remaining > 0 ? remaining : '';
-      if (remaining <= 0) { clearInterval(iv); el.style.display = 'none'; resolve(); }
-    }, 1000);
-  });
-}
-
-function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// ── Main flow ─────────────────────────────────────────────────────────────────
+// ── Flow ──────────────────────────────────────────────────────────────────────
 async function runExperiment() {
   await setupVoices();
-
   for (exp.trialIndex = 0; exp.trialIndex < exp.conditions.length; exp.trialIndex++) {
     await showPreTrial(exp.trialIndex);
     await runTrial(exp.conditions[exp.trialIndex]);
-    if (exp.trialIndex < exp.conditions.length - 1) await showInterTrial();
+    if (exp.trialIndex < exp.conditions.length - 1) {
+      show('screen-inter-trial');
+      await delay(1200);
+    }
   }
-
   showDebrief();
 }
 
@@ -271,10 +338,6 @@ function showPreTrial(index) {
     const h = () => { btn.removeEventListener('click', h); resolve(); };
     btn.addEventListener('click', h);
   });
-}
-
-function showInterTrial() {
-  return new Promise(resolve => { show('screen-inter-trial'); setTimeout(resolve, 1500); });
 }
 
 function showDebrief() {
@@ -290,10 +353,7 @@ function showDebrief() {
       preferredVoice:       document.getElementById('deb-preferred-voice').value,
       mostHelpfulRepair:    document.getElementById('deb-best-repair').value,
       comments:             document.getElementById('deb-comments').value.trim(),
-      voicesUsed: {
-        synthetic: resolvedVoices.synthetic?.name,
-        natural:   resolvedVoices.natural?.name,
-      },
+      voicesUsed: { synthetic: resolvedVoices.synthetic?.name, natural: resolvedVoices.natural?.name },
     });
   });
 }
@@ -303,16 +363,26 @@ function exportAndComplete(debriefData) {
     participantId: exp.participantId,
     timestamp:     new Date().toISOString(),
     conditionOrder: exp.conditions,
-    trials:        exp.results,
-    debrief:       debriefData,
-    derived: exp.results.map(r => ({
-      trialId:       r.trialId,
-      voice:         r.condition.voice,
-      repair:        r.condition.repair,
-      trustDrop:     r.ratings.post_error     ? +(r.ratings.post_error.trust     - 4).toFixed(2) : null,
-      trustRecovery: r.ratings.post_repair && r.ratings.post_error
-        ? +(r.ratings.post_repair.trust - r.ratings.post_error.trust).toFixed(2) : null,
-    })),
+    trials: exp.results,
+    debrief: debriefData,
+    // Pre-computed trust trajectory per trial
+    derived: exp.results.map(r => {
+      const b  = r.ratings.baseline?.trust    ?? null;
+      const pe = r.ratings.post_error?.trust  ?? null;
+      const pr = r.ratings.post_repair?.trust ?? null;
+      return {
+        trialId:       r.trialId,
+        voice:         r.condition.voice,
+        repair:        r.condition.repair,
+        baseline:      b,
+        post_error:    pe,
+        post_repair:   pr,
+        // key metrics
+        trustDrop:     b  !== null && pe !== null ? +(pe - b).toFixed(2)  : null,
+        trustRecovery: pe !== null && pr !== null ? +(pr - pe).toFixed(2) : null,
+        netChange:     b  !== null && pr !== null ? +(pr - b).toFixed(2)  : null,
+      };
+    }),
     meta: { userAgent: navigator.userAgent },
   };
 
