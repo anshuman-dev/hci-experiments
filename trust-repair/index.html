@@ -9,211 +9,219 @@
 
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0c0e14;
-      color: #dde3f0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #0c0e14; color: #dde3f0;
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
     }
 
     .screen {
-      display: none;
-      width: 100%;
-      min-height: 100vh;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      flex-direction: column;
+      display: none; width: 100%; min-height: 100vh;
+      align-items: center; justify-content: center;
+      padding: 2rem; flex-direction: column;
     }
     .screen.active { display: flex; }
 
     .card {
-      background: #161922;
-      border: 1px solid #252a3a;
-      border-radius: 14px;
-      padding: 2.4rem 2.8rem;
-      max-width: 640px;
-      width: 100%;
+      background: #161922; border: 1px solid #252a3a;
+      border-radius: 14px; padding: 2.2rem 2.6rem;
+      max-width: 640px; width: 100%;
     }
 
-    h1 { font-size: 1.55rem; font-weight: 700; color: #fff; margin-bottom: 0.4rem; }
-    h2 { font-size: 1.2rem; font-weight: 600; color: #c0cce0; margin-bottom: 1rem; }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 0.4rem; }
+    h2 { font-size: 1.15rem; font-weight: 600; color: #c0cce0; margin-bottom: 1rem; }
     p  { line-height: 1.7; color: #8a96b4; margin-bottom: 0.8rem; }
     strong { color: #dde3f0; }
+    code { background: #0c0e14; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.85em; color: #7a9ecc; }
 
     .label-sm {
       font-size: 0.72rem; color: #4a5270; text-transform: uppercase;
       letter-spacing: 0.07em; margin-bottom: 0.4rem; display: block;
     }
-    hr { border: none; border-top: 1px solid #252a3a; margin: 1.4rem 0; }
+    hr { border: none; border-top: 1px solid #252a3a; margin: 1.3rem 0; }
 
     .btn {
-      display: inline-block; padding: 0.65rem 1.6rem; border-radius: 8px;
-      border: none; font-size: 0.92rem; font-weight: 600;
+      display: inline-block; padding: 0.62rem 1.5rem; border-radius: 8px;
+      border: none; font-size: 0.9rem; font-weight: 600;
       cursor: pointer; transition: opacity 0.15s;
     }
     .btn:hover { opacity: 0.82; }
     .btn-primary { background: #3a6bff; color: #fff; }
     .btn-success { background: #22aa66; color: #fff; }
-    .btn-row { display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.6rem; }
+    .btn-row { display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.4rem; }
+
+    /* ── Step list ─────────────────────────────────────────────────────────── */
+    .step-list { list-style: none; padding: 0; margin: 0.8rem 0; }
+    .step-list li {
+      padding: 0.5rem 0 0.5rem 1.8rem; position: relative;
+      color: #8a96b4; line-height: 1.55; border-bottom: 1px solid #1e2234;
+    }
+    .step-list li::before {
+      content: attr(data-n); position: absolute; left: 0; top: 0.5rem;
+      font-weight: 700; color: #3a6bff; font-size: 0.82rem;
+    }
 
     /* ── Trial screen ──────────────────────────────────────────────────────── */
-    #screen-trial { background: #0c0e14; padding: 1.5rem; }
+    #screen-trial, #screen-practice { background: #0c0e14; padding: 1.5rem; }
 
     .trial-layout {
       display: flex; flex-direction: column; align-items: center;
-      gap: 1.2rem; width: 100%; max-width: 560px;
+      gap: 1.1rem; width: 100%; max-width: 540px;
     }
 
-    .trial-header {
-      width: 100%; display: flex; justify-content: space-between; align-items: center;
+    .trial-header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+    #trial-num, #practice-label-top { font-size: 0.82rem; color: #4a5270; font-weight: 600; }
+
+    /* ── Progress bar ──────────────────────────────────────────────────────── */
+    #progress-wrap {
+      width: 100%; background: #0e1018; border: 1px solid #1e2234;
+      border-radius: 8px; padding: 0.7rem 1rem;
     }
-    #trial-num { font-size: 0.82rem; color: #4a5270; font-weight: 600; }
-    #trial-condition { font-size: 0.75rem; color: #303650; }
+    .progress-header {
+      display: flex; justify-content: space-between;
+      font-size: 0.72rem; color: #3a4260; margin-bottom: 0.45rem;
+    }
+    #progress-pct { font-weight: 700; color: #5a6a90; }
+    .progress-track {
+      height: 8px; background: #1a2030; border-radius: 4px; overflow: hidden;
+    }
+    #progress-bar {
+      height: 100%; width: 0%; border-radius: 4px;
+      background: #3a6bff;
+      transition: width 2.2s ease-in-out, background-color 0.4s;
+    }
 
     /* ── Corridor map ──────────────────────────────────────────────────────── */
-    #map-wrap {
+    #map-wrap, #practice-map-wrap {
       width: 100%; background: #0e1018; border: 1px solid #1e2234;
-      border-radius: 10px; padding: 0.8rem; overflow: hidden;
+      border-radius: 10px; padding: 0.7rem; overflow: hidden;
     }
-    #corridor-map { width: 100%; height: auto; display: block; }
-
-    /* map path transitions */
+    .corridor-map { width: 100%; height: auto; display: block; }
     #path-correct, #path-wrong, #robot-dot, #error-badge { transition: all 0.5s ease; }
 
     /* ── Robot display ─────────────────────────────────────────────────────── */
     .robot-display {
-      width: 180px; height: 180px; border-radius: 50%;
+      width: 160px; height: 160px; border-radius: 50%;
       display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 0.5rem;
+      justify-content: center; gap: 0.45rem;
       border: 2px solid #252a3a;
       transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
       background: #131620;
     }
-
     .robot-idle     { border-color: #252a3a; background: #131620; }
     .robot-speaking {
       border-color: #3a6bff;
       background: radial-gradient(circle, #1a2040 0%, #131620 70%);
-      box-shadow: 0 0 40px rgba(58,107,255,0.18);
+      box-shadow: 0 0 36px rgba(58,107,255,0.16);
     }
     .robot-error {
       border-color: #cc3333;
       background: radial-gradient(circle, #2a1010 0%, #131620 70%);
-      box-shadow: 0 0 40px rgba(200,40,40,0.2);
       animation: pulse-error 1.2s ease-in-out infinite;
     }
     .robot-repair {
       border-color: #f0a000;
       background: radial-gradient(circle, #201600 0%, #131620 70%);
-      box-shadow: 0 0 40px rgba(240,160,0,0.15);
+      box-shadow: 0 0 36px rgba(240,160,0,0.13);
     }
     .robot-done {
       border-color: #22aa66;
       background: radial-gradient(circle, #0a2018 0%, #131620 70%);
     }
-
     @keyframes pulse-error {
-      0%, 100% { box-shadow: 0 0 20px rgba(200,40,40,0.15); }
-      50%       { box-shadow: 0 0 55px rgba(200,40,40,0.35); }
+      0%, 100% { box-shadow: 0 0 18px rgba(200,40,40,0.12); }
+      50%       { box-shadow: 0 0 50px rgba(200,40,40,0.32); }
     }
-
-    .robot-icon { font-size: 2.2rem; line-height: 1; user-select: none; }
-
-    #robot-status {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+    .robot-icon { font-size: 2rem; line-height: 1; user-select: none; }
+    #robot-status, #practice-robot-status {
+      font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em;
       text-transform: uppercase; color: #4a5270; transition: color 0.3s;
     }
-    .robot-speaking #robot-status { color: #3a6bff; }
+    .robot-speaking #robot-status, .robot-speaking #practice-robot-status { color: #3a6bff; }
     .robot-error    #robot-status { color: #cc3333; }
     .robot-repair   #robot-status { color: #f0a000; }
     .robot-done     #robot-status { color: #22aa66; }
 
     /* ── Waveform ──────────────────────────────────────────────────────────── */
-    .waveform { display: flex; align-items: center; gap: 3px; height: 22px; }
+    .waveform { display: flex; align-items: center; gap: 3px; height: 20px; }
     .waveform span {
-      display: inline-block; width: 4px; height: 6px;
+      display: inline-block; width: 4px; height: 5px;
       border-radius: 2px; background: #3a6bff; opacity: 0.3; transition: opacity 0.2s;
     }
     .waveform.active span { opacity: 1; animation: wave 0.9s ease-in-out infinite; }
-    .waveform span:nth-child(1) { animation-delay: 0.00s; }
-    .waveform span:nth-child(2) { animation-delay: 0.10s; }
-    .waveform span:nth-child(3) { animation-delay: 0.20s; }
-    .waveform span:nth-child(4) { animation-delay: 0.30s; }
-    .waveform span:nth-child(5) { animation-delay: 0.15s; }
-    .waveform span:nth-child(6) { animation-delay: 0.05s; }
-    .waveform span:nth-child(7) { animation-delay: 0.25s; }
-    @keyframes wave { 0%, 100% { height: 5px; } 50% { height: 20px; } }
+    .waveform span:nth-child(1){animation-delay:0.00s}
+    .waveform span:nth-child(2){animation-delay:0.10s}
+    .waveform span:nth-child(3){animation-delay:0.20s}
+    .waveform span:nth-child(4){animation-delay:0.30s}
+    .waveform span:nth-child(5){animation-delay:0.15s}
+    .waveform span:nth-child(6){animation-delay:0.05s}
+    .waveform span:nth-child(7){animation-delay:0.25s}
+    @keyframes wave { 0%, 100% { height: 5px; } 50% { height: 18px; } }
 
-    #phase-label { font-size: 0.82rem; color: #5a6480; font-weight: 500; letter-spacing: 0.04em; }
+    #phase-label, #practice-phase-label {
+      font-size: 0.8rem; color: #5a6480; font-weight: 500; letter-spacing: 0.04em;
+    }
+    #voice-info { font-size: 0.65rem; color: #252840; }
 
     /* ── Rating panel ──────────────────────────────────────────────────────── */
     #rating-wrap {
-      width: 100%;
-      background: #161922; border: 1px solid #252a3a; border-radius: 12px;
-      padding: 1.4rem 1.6rem;
-      opacity: 0; transform: translateY(12px);
-      transition: opacity 0.3s, transform 0.3s;
-      pointer-events: none;
+      width: 100%; background: #161922; border: 1px solid #252a3a;
+      border-radius: 12px; padding: 1.3rem 1.5rem;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s; pointer-events: none;
     }
     #rating-wrap.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
-
-    #rating-question {
-      font-size: 0.92rem; font-weight: 600; color: #c0cce0;
-      margin-bottom: 1.1rem; display: block;
-    }
+    #rating-question { font-size: 0.9rem; font-weight: 600; color: #c0cce0; margin-bottom: 1rem; display: block; }
 
     .trust-panel { display: none; }
     .trust-panel.active { display: block; }
 
-    .rating-item { margin-bottom: 1rem; }
-    .rating-item label { display: block; font-size: 0.83rem; color: #8a96b4; margin-bottom: 0.35rem; }
+    .rating-item { margin-bottom: 0.9rem; }
+    .rating-item label { display: block; font-size: 0.82rem; color: #8a96b4; margin-bottom: 0.3rem; }
     .slider-row { display: flex; align-items: center; gap: 0.7rem; }
     .slider-row input[type=range] { flex: 1; accent-color: #3a6bff; }
-    .range-val { width: 1.5rem; text-align: center; font-weight: 700; color: #3a6bff; font-size: 0.92rem; }
-    .scale-labels { display: flex; justify-content: space-between; font-size: 0.68rem; color: #3a4260; margin-top: 0.1rem; }
+    .range-val { width: 1.4rem; text-align: center; font-weight: 700; color: #3a6bff; font-size: 0.9rem; }
+    .scale-labels { display: flex; justify-content: space-between; font-size: 0.67rem; color: #3a4260; margin-top: 0.1rem; }
 
-    /* ── Instructions list ─────────────────────────────────────────────────── */
-    .step-list { list-style: none; padding: 0; margin: 0.8rem 0; }
-    .step-list li {
-      padding: 0.55rem 0 0.55rem 1.8rem; position: relative;
-      color: #8a96b4; line-height: 1.55; border-bottom: 1px solid #1e2234;
-    }
-    .step-list li::before {
-      content: attr(data-n); position: absolute; left: 0; top: 0.55rem;
-      font-weight: 700; color: #3a6bff; font-size: 0.82rem;
+    .scale-note {
+      font-size: 0.7rem; color: #3a4560; margin-bottom: 0.8rem;
+      padding-bottom: 0.6rem; border-bottom: 1px solid #1e2234;
     }
 
     /* ── Debrief ───────────────────────────────────────────────────────────── */
-    .debrief-form .rating-item { margin-bottom: 1.3rem; }
-    .debrief-form label { display: block; font-size: 0.88rem; color: #8a96b4; margin-bottom: 0.4rem; }
+    .debrief-form .rating-item { margin-bottom: 1.2rem; }
+    .debrief-form label { display: block; font-size: 0.86rem; color: #8a96b4; margin-bottom: 0.35rem; }
     textarea {
       width: 100%; background: #0c0e14; border: 1px solid #252a3a; border-radius: 6px;
-      color: #dde3f0; padding: 0.65rem 0.8rem; font-size: 0.88rem;
-      resize: vertical; min-height: 70px; margin-top: 0.3rem;
+      color: #dde3f0; padding: 0.6rem 0.75rem; font-size: 0.86rem;
+      resize: vertical; min-height: 65px; margin-top: 0.3rem;
     }
     select {
       width: 100%; background: #0c0e14; border: 1px solid #252a3a; border-radius: 6px;
-      color: #dde3f0; padding: 0.5rem 0.8rem; font-size: 0.88rem; margin-top: 0.3rem;
+      color: #dde3f0; padding: 0.48rem 0.75rem; font-size: 0.86rem; margin-top: 0.3rem;
     }
     .disclosure-box {
       background: #0e1420; border: 1px solid #2a3a5a;
       border-left: 4px solid #3a6bff; border-radius: 6px;
-      padding: 1rem 1.2rem; margin: 1rem 0;
-      font-size: 0.88rem; color: #8a96b4; line-height: 1.65;
+      padding: 0.9rem 1.1rem; margin: 0.9rem 0;
+      font-size: 0.86rem; color: #8a96b4; line-height: 1.65;
     }
     .disclosure-box strong { color: #c0cce0; }
 
     /* ── Complete ──────────────────────────────────────────────────────────── */
     #download-link {
-      display: none; margin-top: 1rem; padding: 0.6rem 1.4rem;
+      display: none; margin-top: 1rem; padding: 0.58rem 1.3rem;
       background: #22aa66; color: #fff; border-radius: 8px;
-      text-decoration: none; font-weight: 600; font-size: 0.88rem;
+      text-decoration: none; font-weight: 600; font-size: 0.86rem;
     }
 
-    /* ── Inter-trial ───────────────────────────────────────────────────────── */
-    #screen-inter-trial { background: #0c0e14; font-size: 1rem; color: #3a4260; letter-spacing: 0.08em; }
+    /* ── Practice badge ────────────────────────────────────────────────────── */
+    .practice-badge {
+      background: #1e2840; border: 1px solid #2a3a5a; border-radius: 6px;
+      padding: 0.3rem 0.8rem; font-size: 0.7rem; color: #4a6a9a;
+      font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    #screen-inter-trial { background: #0c0e14; font-size: 0.9rem; color: #3a4260; letter-spacing: 0.08em; }
   </style>
 </head>
 <body>
@@ -223,15 +231,12 @@
   <div class="card">
     <span class="label-sm">HRI Study — Voice &amp; Trust</span>
     <h1>Voice &amp; Trust Repair Study</h1>
-    <p>
-      In this study you will interact with a robot navigation assistant across
-      several short sessions. The robot will guide you through a task, make an error,
-      and respond in different ways. You will rate your trust in the robot at key moments.
-    </p>
-    <p>The study takes approximately <strong>10–15 minutes</strong>.
-      Please use <strong>headphones</strong> — audio quality matters.</p>
+    <p>You will interact with a robot navigation assistant across several short sessions.
+      The robot will guide you through a task, make an error, and respond in different ways.
+      You will rate your trust at key moments.</p>
+    <p>Takes approximately <strong>12–18 minutes</strong>. Please use <strong>headphones</strong>.</p>
     <hr>
-    <p style="font-size:0.82rem;color:#3a4260;">No personal data beyond anonymous interaction logs is collected.
+    <p style="font-size:0.8rem;color:#3a4260;">No personal data beyond anonymous interaction logs is collected.
       You may stop at any time. Clicking <em>Begin</em> constitutes consent.</p>
     <div class="btn-row">
       <button id="btn-start" class="btn btn-primary">Begin</button>
@@ -244,18 +249,54 @@
   <div class="card">
     <h2>What will happen</h2>
     <ul class="step-list">
-      <li data-n="1">A robot will introduce itself. You will give a first impression rating.</li>
-      <li data-n="2">The robot will guide you through a navigation task successfully.</li>
-      <li data-n="3">The robot will make a navigation error. You will rate your trust immediately.</li>
-      <li data-n="4">The robot will respond to the error in some way.</li>
-      <li data-n="5">You will rate your trust once more.</li>
-      <li data-n="6">This repeats 6 times. The robot will sound different across trials.</li>
+      <li data-n="1">A robot introduces itself. You give a first impression trust rating.</li>
+      <li data-n="2">The robot navigates you toward a destination. Watch the progress bar.</li>
+      <li data-n="3">The robot makes a navigation error — your progress drops. Rate your trust.</li>
+      <li data-n="4">The robot responds to the error in some way. Rate your trust again.</li>
+      <li data-n="5">This repeats 6 times across different robots and scenarios.</li>
     </ul>
-    <hr>
-    <p style="font-size:0.85rem;color:#5a6480;">No right or wrong answers. We are interested in your natural reactions.</p>
+    <p style="font-size:0.82rem;color:#4a5270;margin-top:0.8rem;">
+      A short practice trial comes first. Responses during practice are not recorded.
+    </p>
     <div class="btn-row">
-      <button id="btn-to-experiment" class="btn btn-primary">Start trials</button>
+      <button id="btn-to-practice" class="btn btn-primary">Start practice trial</button>
     </div>
+  </div>
+</div>
+
+<!-- ── Practice trial ─────────────────────────────────────────────────────────── -->
+<div id="screen-practice" class="screen">
+  <div class="trial-layout">
+    <div class="trial-header">
+      <span id="practice-label-top">Practice trial</span>
+      <span class="practice-badge">Not recorded</span>
+    </div>
+
+    <div id="practice-map-wrap">
+      <svg class="corridor-map" viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="50" width="320" height="40" fill="#1a2030" rx="6"/>
+        <rect x="198" y="90" width="40" height="44" fill="#1a2030" rx="4"/>
+        <text x="18" y="44" fill="#3a4260" font-size="9" font-family="monospace" font-weight="bold">START</text>
+        <text x="287" y="44" fill="#3a4260" font-size="9" font-family="monospace" font-weight="bold">DEST B</text>
+        <rect x="296" y="55" width="22" height="28" fill="none" stroke="#22aa66" stroke-width="1.5" rx="3" opacity="0.6"/>
+        <text x="302" y="74" fill="#22aa66" font-size="11" font-family="monospace" font-weight="bold">B</text>
+        <line x1="28" y1="70" x2="296" y2="70" stroke="#3a6bff" stroke-width="2" stroke-dasharray="10,5" opacity="0.35"/>
+        <circle cx="160" cy="70" r="7" fill="none" stroke="#3a6bff" stroke-width="1.5" opacity="0.3"/>
+        <text x="160" y="90" text-anchor="middle" fill="#3a4260" font-size="8" font-family="monospace">CHK</text>
+        <circle id="practice-robot-dot" cx="28" cy="70" r="10" fill="#3a6bff" opacity="0.9" style="transition:all 0.5s"/>
+        <text id="practice-robot-label" x="28" y="74" text-anchor="middle" fill="white" font-size="9" font-family="monospace" font-weight="bold">R</text>
+      </svg>
+    </div>
+
+    <div class="robot-display robot-idle" id="practice-robot-display">
+      <div class="robot-icon">🤖</div>
+      <div class="waveform" id="practice-waveform">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </div>
+      <span id="practice-robot-status">Standby</span>
+    </div>
+    <div id="practice-phase-label">Initialising…</div>
   </div>
 </div>
 
@@ -277,56 +318,47 @@
 
     <div class="trial-header">
       <span id="trial-num">Trial 1 of 6</span>
-      <span id="trial-condition"></span>
+    </div>
+
+    <!-- Progress bar (has stakes) -->
+    <div id="progress-wrap">
+      <div class="progress-header">
+        <span>Progress to Destination B</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div id="progress-bar"></div>
+      </div>
     </div>
 
     <!-- Corridor map -->
     <div id="map-wrap">
-      <svg id="corridor-map" viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg">
-        <!-- Corridor floor -->
+      <svg id="corridor-map" class="corridor-map" viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg">
         <rect x="10" y="50" width="320" height="40" fill="#1a2030" rx="6"/>
-        <!-- Wrong branch floor -->
         <rect x="198" y="90" width="40" height="44" fill="#1a2030" rx="4"/>
-
-        <!-- Labels -->
         <text x="18" y="44" fill="#3a4260" font-size="9" font-family="monospace" font-weight="bold">START</text>
         <text x="287" y="44" fill="#3a4260" font-size="9" font-family="monospace" font-weight="bold">DEST B</text>
-
-        <!-- Destination marker -->
         <rect x="296" y="55" width="22" height="28" fill="none" stroke="#22aa66" stroke-width="1.5" rx="3" opacity="0.6"/>
         <text x="302" y="74" fill="#22aa66" font-size="11" font-family="monospace" font-weight="bold">B</text>
-
-        <!-- Correct path dashes -->
         <line id="path-correct" x1="28" y1="70" x2="296" y2="70"
               stroke="#3a6bff" stroke-width="2" stroke-dasharray="10,5" opacity="0.35"/>
-
-        <!-- Wrong branch path -->
         <line id="path-wrong" x1="218" y1="90" x2="218" y2="128"
               stroke="#cc3333" stroke-width="2.5" stroke-dasharray="8,4" opacity="0"/>
-
-        <!-- Wrong turn label -->
         <text id="wrong-label" x="232" y="116" fill="#cc3333" font-size="9"
               font-family="monospace" font-weight="bold" opacity="0">WRONG TURN</text>
-
-        <!-- Route error badge -->
-        <g id="error-badge" opacity="0" transform="translate(80, 95)">
-          <rect x="0" y="0" width="100" height="24" fill="#8b0000" rx="5"/>
-          <text x="50" y="16" text-anchor="middle" fill="#ff8888"
+        <g id="error-badge" opacity="0" transform="translate(80,97)">
+          <rect x="0" y="0" width="100" height="22" fill="#8b0000" rx="5"/>
+          <text x="50" y="15" text-anchor="middle" fill="#ff8888"
                 font-size="10" font-family="monospace" font-weight="bold">ROUTE ERROR</text>
         </g>
-
-        <!-- Robot dot (circle + label) -->
+        <circle cx="160" cy="70" r="7" fill="none" stroke="#3a6bff" stroke-width="1.5" opacity="0.3"/>
+        <text x="160" y="90" text-anchor="middle" fill="#3a4260" font-size="8" font-family="monospace">CHK</text>
         <circle id="robot-dot" cx="28" cy="70" r="10" fill="#3a6bff" opacity="0.9"/>
         <text id="robot-map-label" x="28" y="74" text-anchor="middle"
               fill="white" font-size="9" font-family="monospace" font-weight="bold">R</text>
-
-        <!-- Checkpoint ring -->
-        <circle cx="160" cy="70" r="7" fill="none" stroke="#3a6bff" stroke-width="1.5" opacity="0.3"/>
-        <text x="160" y="90" text-anchor="middle" fill="#3a4260" font-size="8" font-family="monospace">CHK</text>
       </svg>
     </div>
 
-    <!-- Robot display + waveform -->
     <div class="robot-display robot-idle" id="robot-display">
       <div class="robot-icon">🤖</div>
       <div class="waveform" id="waveform">
@@ -337,102 +369,115 @@
     </div>
 
     <div id="phase-label">Initialising…</div>
-    <div id="voice-info" style="font-size:0.68rem;color:#252840;"></div>
+    <div id="voice-info"></div>
 
-    <!-- Rating panels (shown at key moments) -->
+    <!-- Rating panels -->
     <div id="rating-wrap">
       <span id="rating-question"></span>
 
-      <!-- Baseline panel (after intro, before task) -->
+      <!-- Baseline panel -->
       <div class="trust-panel" id="panel-baseline">
+        <p class="scale-note">Rate 1 (strongly disagree) to 7 (strongly agree)</p>
         <div class="rating-item">
-          <label>I trust this robot</label>
+          <label>I can trust this robot</label>
           <div class="slider-row">
             <input type="range" id="base-trust" min="1" max="7" value="4">
             <span class="range-val">4</span>
           </div>
-          <div class="scale-labels"><span>Not at all</span><span>Completely</span></div>
+          <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
         </div>
         <div class="rating-item">
-          <label>This robot seems competent</label>
+          <label>This robot is reliable</label>
           <div class="slider-row">
-            <input type="range" id="base-competence" min="1" max="7" value="4">
+            <input type="range" id="base-reliability" min="1" max="7" value="4">
             <span class="range-val">4</span>
           </div>
-          <div class="scale-labels"><span>Disagree</span><span>Agree</span></div>
+          <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
         </div>
         <div class="rating-item">
-          <label>I would rely on this robot</label>
+          <label>I am comfortable relying on this robot</label>
           <div class="slider-row">
-            <input type="range" id="base-reliance" min="1" max="7" value="4">
+            <input type="range" id="base-comfort" min="1" max="7" value="4">
             <span class="range-val">4</span>
           </div>
-          <div class="scale-labels"><span>Definitely not</span><span>Definitely yes</span></div>
+          <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
         </div>
         <div class="btn-row">
-          <button id="btn-submit-rating-baseline" class="btn btn-primary">Continue</button>
+          <button id="btn-submit-baseline" class="btn btn-primary">Continue</button>
         </div>
       </div>
 
       <!-- Post-error panel -->
       <div class="trust-panel" id="panel-error">
+        <p class="scale-note">Rate 1 (strongly disagree) to 7 (strongly agree)</p>
         <div class="rating-item">
-          <label>I trust this robot</label>
+          <label>I can trust this robot</label>
           <div class="slider-row">
             <input type="range" id="err-trust" min="1" max="7" value="4">
             <span class="range-val">4</span>
           </div>
-          <div class="scale-labels"><span>Not at all</span><span>Completely</span></div>
+          <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
         </div>
         <div class="rating-item">
-          <label>This robot seems competent</label>
+          <label>This robot is reliable</label>
           <div class="slider-row">
-            <input type="range" id="err-competence" min="1" max="7" value="4">
+            <input type="range" id="err-reliability" min="1" max="7" value="4">
             <span class="range-val">4</span>
           </div>
-          <div class="scale-labels"><span>Disagree</span><span>Agree</span></div>
+          <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
         </div>
         <div class="rating-item">
-          <label>I would rely on this robot again</label>
+          <label>I am comfortable relying on this robot</label>
           <div class="slider-row">
-            <input type="range" id="err-reliance" min="1" max="7" value="4">
+            <input type="range" id="err-comfort" min="1" max="7" value="4">
             <span class="range-val">4</span>
           </div>
-          <div class="scale-labels"><span>Definitely not</span><span>Definitely yes</span></div>
+          <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
         </div>
         <div class="btn-row">
-          <button id="btn-submit-rating" class="btn btn-primary">Continue</button>
+          <button id="btn-submit-error" class="btn btn-primary">Continue</button>
         </div>
       </div>
 
-      <!-- Post-repair panel -->
+      <!-- Post-repair panel + manipulation check -->
       <div class="trust-panel" id="panel-repair">
+        <p class="scale-note">Rate 1 (strongly disagree) to 7 (strongly agree)</p>
         <div class="rating-item">
-          <label>I trust this robot</label>
+          <label>I can trust this robot</label>
           <div class="slider-row">
             <input type="range" id="rep-trust" min="1" max="7" value="4">
             <span class="range-val">4</span>
           </div>
-          <div class="scale-labels"><span>Not at all</span><span>Completely</span></div>
+          <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
         </div>
         <div class="rating-item">
-          <label>This robot seems competent</label>
+          <label>This robot is reliable</label>
           <div class="slider-row">
-            <input type="range" id="rep-competence" min="1" max="7" value="4">
+            <input type="range" id="rep-reliability" min="1" max="7" value="4">
             <span class="range-val">4</span>
           </div>
-          <div class="scale-labels"><span>Disagree</span><span>Agree</span></div>
+          <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
         </div>
         <div class="rating-item">
-          <label>I would rely on this robot again</label>
+          <label>I am comfortable relying on this robot</label>
           <div class="slider-row">
-            <input type="range" id="rep-reliance" min="1" max="7" value="4">
+            <input type="range" id="rep-comfort" min="1" max="7" value="4">
             <span class="range-val">4</span>
           </div>
-          <div class="scale-labels"><span>Definitely not</span><span>Definitely yes</span></div>
+          <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
+        </div>
+        <hr style="margin: 0.8rem 0;">
+        <!-- Manipulation check — voice naturalness -->
+        <div class="rating-item">
+          <label>How natural did this robot's voice sound?</label>
+          <div class="slider-row">
+            <input type="range" id="rep-naturalness" min="1" max="7" value="4">
+            <span class="range-val">4</span>
+          </div>
+          <div class="scale-labels"><span>Very robotic</span><span>Very natural</span></div>
         </div>
         <div class="btn-row">
-          <button id="btn-submit-rating-repair" class="btn btn-primary">Continue</button>
+          <button id="btn-submit-repair" class="btn btn-primary">Continue</button>
         </div>
       </div>
 
@@ -448,30 +493,32 @@
   <div class="card">
     <h2>Final questions</h2>
     <div class="disclosure-box">
-      <strong>Debrief notice:</strong> All robots in this study were fully automated.
-      No human was ever in control. This deception was necessary to test whether the
-      <em>belief</em> about robot control affects trust responses. We apologise and
-      thank you for your participation.
+      <strong>Debrief:</strong> All robots in this study were fully automated — no human was
+      ever in control. Any "teleoperated" framing was a necessary deception to test whether
+      beliefs about robot control affect trust responses. We apologise and thank you.
     </div>
     <div class="debrief-form">
+
       <div class="rating-item">
-        <label>During "teleoperated" trials, did you believe a human was in control?</label>
+        <label>How clearly could you tell the robot voices apart in terms of naturalness?</label>
         <div class="slider-row">
-          <input type="range" id="deb-believed" min="1" max="7" value="4">
+          <input type="range" id="deb-voice-diff" min="1" max="7" value="4">
           <span class="range-val">4</span>
         </div>
-        <div class="scale-labels"><span>Not at all</span><span>Completely believed it</span></div>
+        <div class="scale-labels"><span>Could not tell at all</span><span>Very clearly different</span></div>
       </div>
+
       <div class="rating-item">
-        <label>Overall trust in the robots across all trials?</label>
+        <label>Overall trust across all trials?</label>
         <div class="slider-row">
           <input type="range" id="deb-overall-trust" min="1" max="7" value="4">
           <span class="range-val">4</span>
         </div>
         <div class="scale-labels"><span>Not at all</span><span>Very much</span></div>
       </div>
+
       <div class="rating-item">
-        <label>Which voice felt more trustworthy overall?</label>
+        <label>Which voice felt more trustworthy?</label>
         <select id="deb-preferred-voice">
           <option value="">— select —</option>
           <option value="synthetic">The more robotic / flat voice</option>
@@ -479,6 +526,7 @@
           <option value="no_difference">No noticeable difference</option>
         </select>
       </div>
+
       <div class="rating-item">
         <label>Which response to the error felt most helpful?</label>
         <select id="deb-best-repair">
@@ -489,10 +537,12 @@
           <option value="no_difference">No difference</option>
         </select>
       </div>
+
       <div class="rating-item">
-        <label>Any other comments?</label>
+        <label>Any comments?</label>
         <textarea id="deb-comments" placeholder="Optional…"></textarea>
       </div>
+
     </div>
     <div class="btn-row">
       <button id="btn-finish" class="btn btn-success">Submit &amp; finish</button>
@@ -505,13 +555,13 @@
   <div class="card" style="text-align:center;">
     <h1>Thank you</h1>
     <p style="margin-top:0.8rem;">Your responses have been recorded locally.</p>
-    <p>Download your session data — the JSON includes trust trajectory
-    (baseline → post-error → post-repair) for each of the 6 conditions.</p>
+    <p>The JSON includes the full trust trajectory (baseline → post-error → post-repair)
+      and per-trial voice naturalness ratings for manipulation check analysis.</p>
     <a id="download-link">Download session data (.json)</a>
     <hr>
-    <p style="font-size:0.8rem;color:#3a4260;">
+    <p style="font-size:0.78rem;color:#3a4260;">
       Extends Romeo et al. (2025) "The Effect of Voice and Repair Strategy on Trust
-      Formation and Repair in HRI" — ACM Transactions on Human-Robot Interaction 14(2).
+      Formation and Repair in HRI" — ACM THRI 14(2).
     </p>
   </div>
 </div>
