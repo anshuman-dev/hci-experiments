@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HCI Experiments — Anshuman Singh</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0c0e14; color: #dde3f0;
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center; padding: 2rem;
+    }
+    .wrap { max-width: 660px; width: 100%; }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem; }
+    .sub { font-size: 0.85rem; color: #4a5270; margin-bottom: 2rem; }
+    .card {
+      background: #161922; border: 1px solid #252a3a;
+      border-radius: 14px; padding: 1.8rem 2rem; margin-bottom: 1.2rem;
+    }
+    .card-tag {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #3a6bff; margin-bottom: 0.5rem;
+    }
+    .card h2 { font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 0.5rem; }
+    .card p { font-size: 0.86rem; color: #7a86a4; line-height: 1.65; margin-bottom: 1rem; }
+    .card p strong { color: #b0bcd4; }
+    .pill-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .pill {
+      font-size: 0.7rem; padding: 0.2rem 0.7rem; border-radius: 20px;
+      background: #1e2234; border: 1px solid #2a3050; color: #5a6a90;
+    }
+    .btn {
+      display: inline-block; padding: 0.55rem 1.3rem; border-radius: 8px;
+      background: #3a6bff; color: #fff; text-decoration: none;
+      font-size: 0.85rem; font-weight: 600; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.82; }
+    .cite {
+      font-size: 0.72rem; color: #3a4260; margin-top: 0.9rem;
+      padding-top: 0.7rem; border-top: 1px solid #1e2234;
+    }
+    footer { text-align: center; font-size: 0.72rem; color: #2a3050; margin-top: 2rem; }
+    footer a { color: #3a4a70; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>HCI Research Experiments</h1>
+  <p class="sub">Anshuman Singh &nbsp;·&nbsp; PhD applicant, Human-Robot Interaction
+    &nbsp;·&nbsp; <a href="https://github.com/anshuman-dev/hci-experiments" style="color:#3a5080;text-decoration:none;">github.com/anshuman-dev/hci-experiments</a>
+  </p>
+
+  <div class="card">
+    <div class="card-tag">Replication &amp; Extension</div>
+    <h2>Voice &amp; Trust Repair in HRI</h2>
+    <p>
+      A within-subjects browser experiment examining how <strong>voice naturalness</strong>
+      (synthetic vs. natural, both male to eliminate gender confound) interacts with
+      <strong>repair strategy</strong> (apology / explanation / silence) to restore trust
+      after a robot navigation error.
+    </p>
+    <p>
+      Extends <strong>Romeo et al. (2025)</strong> by adding a pre-registered manipulation
+      check (per-trial naturalness rating), task stakes (animated progress bar that drops on
+      error), and validated trust items from <strong>Jian et al. (2000)</strong>.
+    </p>
+    <div class="pill-row">
+      <span class="pill">2×3 within-subjects</span>
+      <span class="pill">ElevenLabs TTS</span>
+      <span class="pill">Jian et al. scale</span>
+      <span class="pill">Manipulation check</span>
+      <span class="pill">JSON export</span>
+    </div>
+    <a href="trust-repair/" class="btn">Open experiment →</a>
+    <p class="cite">
+      Extends: Romeo et al. (2025). <em>The Effect of Voice and Repair Strategy on Trust
+      Formation and Repair in HRI.</em> ACM THRI 14(2). ·
+      Scale: Jian et al. (2000). <em>Foundations for an empirically determined scale of
+      trust in automated systems.</em>
+    </p>
+  </div>
+
+  <footer>
+    Built to support a PhD application to Chalmers University (supervisor: Ilaria Torre) ·
+    <a href="https://github.com/anshuman-dev/hci-experiments">Source on GitHub</a>
+  </footer>
+</div>
+</body>
+</html>
